@@ -7,9 +7,10 @@ import AppLoading from 'expo-app-loading';
 import { useFonts, Inter_400Regular } from '@expo-google-fonts/inter';
 import Logo from "../assets/img/logo.png";
 
-export default function Login() {
+export default function Login({ navigation }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [stateWifi, setStateWifi] = useState({isConnected: false});
 
   useEffect(() => {
     handlePermission();
@@ -18,69 +19,100 @@ export default function Login() {
   const [ fontLoaded ] = useFonts({
     Inter_400Regular,
   });
-
+  
+  let state = false;
   if (!fontLoaded){
     return <AppLoading/>
   }
-
   async function handlePermission() {
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.CAMERA,
       {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
+        title: "Permitir acesso",
+        message: `App necessita de acesso a camera para fazer consultas sobre wifi!`,
         buttonNegative: "Cancel",
         buttonPositive: "OK"
       }
     );
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      const state = await NetInfo.fetch();
-      alert(`SSID ${state.details.ssid}`);
-
-      // new WebSocket(ws://)
+      try {
+        const state = await NetInfo.fetch();
+        setStateWifi(state);
+      } catch(error) {
+        alert("Erro: ", error);
+        console.log("erro request: ", error)
+      }
     } else {
       alert("acesso negado!");
     }
     
   }
 
+  function handleLogin() {
+    fetch(
+      "http://192.168.4.1/login", 
+      {
+        method: "POST", 
+        body: JSON.stringify({
+          username: username, 
+          password: password
+        })
+      }
+    ).then(response => response.json()
+    ).then(data => {
+      if (data.status === "logado com sucesso!") {
+        navigation.navigate("Lobby");
+      } else {
+        setPassword("");
+        alert("Usuário ou senha incorreto!");
+      }
+    });
+  }
+
   return (
     <View style={styles.container}>      
       <View style={styles.wrapper}>
-        <Image 
-          style={styles.img}
-          source={Logo}
-        />
+        {stateWifi.isConnected ? (
+          <>
+            <Image 
+              style={styles.img}
+              source={Logo}
+            />
 
-        <Text style={styles.title}>
-          Login
-        </Text>
+            <Text style={styles.title}>
+              Login
+            </Text>
 
-        <View style={styles.firstInput}>
-          <Input
-            valueInput={username}
-            setValueInput={setUsername}
-            label={"usuário"}
-          />
-        </View>
-        
-        <Input
-          valueInput={password}
-          setValueInput={setPassword}
-          label={"senha"}
-          type={"password"}
-        />
+            <View style={styles.firstInput}>
+              <Input
+                valueInput={username}
+                setValueInput={setUsername}
+                label={"usuário"}
+              />
+            </View>
+            
+            <Input
+              valueInput={password}
+              setValueInput={setPassword}
+              label={"senha"}
+              type={"password"}
+            />
 
-        <TouchableOpacity
-          style={styles.btn}
-        >
-          <Text style={styles.btnText}>
-            Entrar
+            <TouchableOpacity
+              style={styles.btn}
+              onPressIn={handleLogin}
+            >
+              <Text style={styles.btnText}>
+                Entrar
+              </Text>
+            </TouchableOpacity>
+          </>
+        ): (
+          <Text>
+            Loading...
           </Text>
-        </TouchableOpacity>
+        )}
+      
       </View>
     </View>
   );
