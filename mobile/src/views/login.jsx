@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
-
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, Image, TouchableOpacity, PermissionsAndroid } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import Input from "../components/Formulario/input";
 
 import AppLoading from 'expo-app-loading';
@@ -11,12 +11,40 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    handlePermission();
+  }, []);
+
   const [ fontLoaded ] = useFonts({
     Inter_400Regular,
   });
 
   if (!fontLoaded){
     return <AppLoading/>
+  }
+
+  async function handlePermission() {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: "Cool Photo App Camera Permission",
+        message:
+          "Cool Photo App needs access to your camera " +
+          "so you can take awesome pictures.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK"
+      }
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      const state = await NetInfo.fetch();
+      alert(`SSID ${state.details.ssid}`);
+
+      // new WebSocket(ws://)
+    } else {
+      alert("acesso negado!");
+    }
+    
   }
 
   return (

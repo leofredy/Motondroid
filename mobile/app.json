@@ -23,7 +23,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/favicon.png"
-      }
+      },
+      "package": "com.leonardofredy.appton"
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
