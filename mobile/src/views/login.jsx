@@ -37,6 +37,7 @@ export default function Login({ navigation }) {
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       try {
         const state = await NetInfo.fetch();
+        alert(state.details.ssid)
         setStateWifi(state);
       } catch(error) {
         alert("Erro: ", error);
@@ -49,24 +50,31 @@ export default function Login({ navigation }) {
   }
 
   function handleLogin() {
-    fetch(
-      "http://192.168.4.1/login", 
-      {
-        method: "POST", 
-        body: JSON.stringify({
-          username: username, 
-          password: password
-        })
-      }
-    ).then(response => response.json()
-    ).then(data => {
-      if (data.status === "logado com sucesso!") {
-        navigation.navigate("Lobby");
-      } else {
-        setPassword("");
-        alert("Usuário ou senha incorreto!");
-      }
-    });
+    if (!stateWifi.details.ssid) {
+      fetch(
+        "http://192.168.4.1/login", 
+        {
+          method: "POST", 
+          body: JSON.stringify({
+            username: username, 
+            password: password
+          })
+        }
+      ).then(response => response.json()
+      ).then(data => {
+        if (data.status === "logado com sucesso!") {
+          navigation.navigate("Lobby");
+        } else {
+          setPassword("");
+          alert("Usuário ou senha incorreto!");
+        }
+      }).catch(() => {
+        alert("sem request")
+      });
+    } else {
+      alert("indo para proxima página")
+      navigation.navigate("Lobby");
+    }
   }
 
   return (

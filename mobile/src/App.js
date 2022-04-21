@@ -11,15 +11,15 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" options={{title: ""}} component={Login} />
+      <Stack.Navigator 
+        initialRouteName="Login"
+        screenOptions={{
+          headerShown: false
+        }}
+      >
+        <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Lobby" component={Lobby} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    
-  },
-});
