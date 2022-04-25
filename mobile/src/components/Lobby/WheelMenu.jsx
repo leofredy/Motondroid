@@ -1,18 +1,100 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View  } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, Rect } from "react-native-svg";
 
 import WheelButton from "./WheelButton";
 
 export default function WheelMenu({ style }) {
+  const [ignition, setIgnition] = useState(false);
+  const [headLight, setHeadLight] = useState(-1);
+  const [hooter, setHooter] = useState(false);
+  const [arrow, setArrow] = useState(-1);
+  const [focusButton, setFocusButton] = useState(false);
+
+  useEffect(() => {
+    if (ignition || hooter) {
+      if (ignition) {
+        console.log("LIGA MOTO");
+      } else {
+        console.log("LIGA Buzina");
+      }
+    } else {
+      console.log("Desliga moto e buzina");
+    }
+  }, [ignition, hooter]);
+
+  useEffect(() => {
+    console.log(`Useffec headlight, ${headLight}`);
+    switch (headLight) {
+      case 1:
+        // apagarFarol
+        break;
+      case 2:
+        // farolBaixo
+        break;
+      case 3:
+        // farolAlto
+        break;
+    }
+  }, [headLight]);
+
+  useEffect(() => {
+    console.log(`Useffect arrow ${arrow}`);
+    switch (arrow) {
+      case 1: 
+        // seta direita
+        break;
+      case 2: 
+        // seta esquerda
+        break;
+      case 3:
+        // pisca alerta 
+        break;
+      case 4:
+        // desliga seta
+        break;
+    }
+  }, [arrow]);
+
+  function changeOptions(typeOption, value) {
+    switch (typeOption) {
+      case "ignition":
+        setIgnition(!ignition);
+        break;
+      case "headlight":
+        setHeadLight(value);
+        break;
+      case "hooter":
+        setHooter(!hooter);
+      case "cutCurrent":
+        setIgnition(false);
+        break;
+      case "arrows":
+        setArrow(value); 
+        break;
+    }
+  }
+
+  function handleFocusOption(focusCurrent) {
+    setFocusButton(focusCurrent);
+  }
   return (
     <View style={style}>
       <WheelButton
+        subChildren={true}
+        childrenCustom={WheelOptionsFarol}
+        changeOption={changeOptions}
+        typeOption={"headlight"}
+        focusOption={handleFocusOption}
+        focusButton={focusButton}
         style={{
           ...styles.wheelButtonSecondary,
-          position: "absolute",
-          top: -(36 + styles.wheelButtonSecondary.width),
-          right: 0
+          backgroundColor: focusButton ? "#B5445A" : "#AB2B43",
+          wheelContainer: {
+            position: "absolute",
+            top: -(16 + styles.wheelButtonSecondary.width),
+            right: 0
+          }
         }}
       >
         <Svg 
@@ -29,11 +111,18 @@ export default function WheelMenu({ style }) {
         </Svg>
       </WheelButton>
       <WheelButton
+        changeOption={changeOptions}
+        typeOption={"hooter"}
+        focusOption={handleFocusOption}
+        focusButton={focusButton}
         style={{
           ...styles.wheelButtonSecondary,
-          position: "absolute",
-          top: -(13 + styles.wheelButtonSecondary.width),
-          right: 5 + styles.wheelButtonSecondary.width
+          backgroundColor: focusButton ? "#B5445A" : "#AB2B43",
+          wheelContainer: {
+            position: "absolute",
+            top: -(4 + styles.wheelButtonSecondary.width),
+            right: 5 + styles.wheelButtonSecondary.width
+          }
         }}
       >
         <Svg 
@@ -50,11 +139,20 @@ export default function WheelMenu({ style }) {
         </Svg>
       </WheelButton>
       <WheelButton
+        subChildren={true}
+        childrenCustom={WheelOptionsArrow}
+        changeOption={changeOptions}
+        typeOption={"arrows"}
+        focusOption={handleFocusOption}
+        focusButton={focusButton}
         style={{
           ...styles.wheelButtonSecondary,
-          position: "absolute",
-          top: -15,
-          right: 38 + styles.wheelButtonSecondary.width
+          backgroundColor: focusButton ? "#B5445A" : "#AB2B43",
+          wheelContainer: {
+            position: "absolute",
+            top: -8,
+            right: 38 + styles.wheelButtonSecondary.width
+          }
         }}
       >
         <Svg 
@@ -71,11 +169,18 @@ export default function WheelMenu({ style }) {
         </Svg>
       </WheelButton>
       <WheelButton
+        changeOption={changeOptions}
+        focusOption={handleFocusOption}
+        typeOption={"cutCurrent"}
+        focusButton={focusButton}
         style={{
           ...styles.wheelButtonSecondary,
-          position: "absolute",
-          bottom: -24,
-          right: -28
+          backgroundColor: focusButton ? "#B5445A" : "#AB2B43",
+          wheelContainer: {
+            position: "absolute",
+            bottom: -30,
+            right: -28
+          }
         }}
       >
         <Svg 
@@ -92,7 +197,14 @@ export default function WheelMenu({ style }) {
         </Svg>
       </WheelButton>
       <WheelButton
-        style={styles.wheelButtonPrimary}
+        changeOption={changeOptions}
+        focusOption={handleFocusOption}
+        focusButton={focusButton}
+        typeOption={"ignition"}
+        style={{
+          ...styles.wheelButtonPrimary,
+          backgroundColor: focusButton ? "#F49979" : "#ED5B27"
+        }}
       >
         <Svg 
           width="18" 
@@ -131,10 +243,98 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 40,
-    backgroundColor: "#AB2B43"
+    backgroundColor: "#AB2B43",
   },
   thunderSvg: {
     width: 3,
     height: 8,
   }
 });
+const WheelOptionsFarol = [
+  {
+    children: <Svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M0.232544 5.82477L6.45986 5.82477M0.232544 8.4468H6.45986M0.232544 11.0688H6.45986M0.232544 13.6909H6.45986M0.232544 15.9851H6.45986M11.3762 5.16927C13.6589 4.61709 18.765 6.18421 19.2422 10.7411C19.7195 15.2979 11.6234 16.909 11.3762 16.3129C9.27402 15.9838 8.5075 14.697 8.09863 10.7411C8.44779 7.12714 9.19945 5.60527 11.3762 5.16927Z" stroke="#DEDEDE"/>
+      <Rect x="19.2126" y="20.0343" width="25" height="2" transform="rotate(-135 19.2126 20.0343)" fill="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -(styles.wheelButtonSecondary.width + 30),
+      right: 100,
+      backgroundColor: "blue"
+    }
+  },
+  {
+    children: <Svg width="20" height="13" viewBox="0 0 20 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M0.232544 1.82477L6.45986 1.82477M0.232544 4.4468L6.45986 4.4468M0.232544 7.06883L6.45986 7.06883M0.232544 9.69086H6.45986M0.232544 11.9851H6.45986M11.3762 1.16927C13.6589 0.61709 18.765 2.18421 19.2422 6.74107C19.7195 11.2979 11.6234 12.909 11.3762 12.3129C9.27402 11.9838 8.5075 10.697 8.09863 6.74107C8.44779 3.12714 9.19945 1.60527 11.3762 1.16927Z" stroke="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -(styles.wheelButtonSecondary.width + 20),
+      right: 5
+    }
+  },
+  {
+    children: <Svg width="21" height="16" viewBox="0 0 21 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M1.31634 4.26579L4.1634 3.00043L7.01046 1.73507M1.31634 9.64357L7.3268 6.48017M1.31634 12.1743L7.3268 9.01089M1.31634 14.705L7.3268 11.5416M1 7.11285L7.3268 3.94945M12.3882 1.10236C14.5915 0.569408 19.5198 2.08195 19.9804 6.48014C20.4411 10.8783 12.6269 12.4333 12.3882 11.8579C10.3593 11.5403 9.61947 10.2983 9.22484 6.48014C9.56184 2.99205 10.2873 1.52318 12.3882 1.10236Z" stroke="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -40,
+      right: styles.wheelButtonSecondary.width + 5
+    }
+  } 
+]
+
+const WheelOptionsArrow = [
+  {
+    children: <Svg width="10" height="7" viewBox="0 0 10 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M6.50829 2.66668H0.666626V4.33334H6.50829V6.83334L9.83329 3.50001L6.50829 0.166676V2.66668Z" fill="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -(styles.wheelButtonSecondary.width + 40),
+      right: -4
+    }
+  },
+  {
+    children: <Svg width="10" height="7" viewBox="0 0 10 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M3.49163 6.83334V4.33334H9.33329V2.66668H3.49163V0.166676L0.166626 3.50001L3.49163 6.83334Z" fill="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -(styles.wheelButtonSecondary.width + 8),
+      right: 30
+    }
+  },
+  {
+    children: <Svg width="18" height="12" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M6.50829 7.66668H0.666626V9.33334H6.50829V11.8333L9.83329 8.50001L6.50829 5.16668V7.66668ZM11.4916 6.83334V4.33334H17.3333V2.66668H11.4916V0.166676L8.16663 3.50001L11.4916 6.83334Z" fill="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: -8,
+      right: styles.wheelButtonSecondary.width + 10
+    }
+  },
+  {
+    children: <Svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path d="M6.50829 7.66668H0.666626V9.33334H6.00704H6.50829V9.96321V11.8333L9.83329 8.50001L8.62535 7.28904L8.08396 6.7463L6.50829 5.16668V7.66668ZM11.4916 6.83334V4.33334H17.3333V2.66668H12.2847H11.4916V2.50166V0.166676L8.16663 3.50001L9.56483 4.90171L10.0947 5.43296L11.4916 6.83334Z" fill="#DEDEDE"/>
+      <Path d="M8.08396 6.7463L8.62535 7.28904L10.0947 5.43296L9.56483 4.90171L8.75 5.91667L8.08396 6.7463Z" fill="#DEDEDE"/>
+      <Path d="M11.4916 2.66668H12.2847L14 0.5L13.5 0L11.4916 2.50166V2.66668Z" fill="#DEDEDE"/>
+      <Path d="M6.50829 9.33334H6.00704L4 11.8333L4.5 12.5L6.50829 9.96321V9.33334Z" fill="#DEDEDE"/>
+    </Svg>,
+    styles: {
+      ...styles.wheelButtonSecondary,
+      position: "absolute",
+      top: 36,
+      right: styles.wheelButtonSecondary.width + 26
+    }
+  } 
+  
+]

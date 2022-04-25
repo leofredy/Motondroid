@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { StatusBar, StyleSheet, View, Text, Image  } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { StatusBar, StyleSheet, View, Text, Image, Animated } from "react-native"
 import * as ScreenOrientation from "expo-screen-orientation";
 import Svg, { Path } from "react-native-svg";
 
@@ -15,6 +15,7 @@ export default function Lobby() {
       setTime(prevState => prevState + 1);
     }, 1000);
   }, []);
+
 
   function getTimeHours() {
     const hours = `${parseInt(time / 3600)}`.padStart(2, "0");

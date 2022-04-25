@@ -50,7 +50,7 @@ export default function Login({ navigation }) {
   }
 
   function handleLogin() {
-    if (!stateWifi.details.ssid) {
+    if (stateWifi.details.ssid) {
       fetch(
         "http://192.168.4.1/login", 
         {
@@ -117,7 +117,7 @@ export default function Login({ navigation }) {
           </>
         ): (
           <Text>
-            Loading...
+            Loading... - {stateWifi.isConnected}
           </Text>
         )}
       
