@@ -4,7 +4,7 @@ import Svg, { Path, Rect } from "react-native-svg";
 
 import WheelButton from "./WheelButton";
 
-export default function WheelMenu({ style }) {
+export default function WheelMenu({ style, changeArrow }) {
   const [ignition, setIgnition] = useState(false);
   const [headLight, setHeadLight] = useState(-1);
   const [hooter, setHooter] = useState(false);
@@ -40,6 +40,7 @@ export default function WheelMenu({ style }) {
 
   useEffect(() => {
     console.log(`Useffect arrow ${arrow}`);
+    changeArrow(arrow);
     switch (arrow) {
       case 1: 
         // seta direita
@@ -259,8 +260,8 @@ const WheelOptionsFarol = [
     styles: {
       ...styles.wheelButtonSecondary,
       position: "absolute",
-      top: -(styles.wheelButtonSecondary.width + 30),
-      right: 100,
+      top: -68,
+      right: 16,
       backgroundColor: "blue"
     }
   },
@@ -271,8 +272,8 @@ const WheelOptionsFarol = [
     styles: {
       ...styles.wheelButtonSecondary,
       position: "absolute",
-      top: -(styles.wheelButtonSecondary.width + 20),
-      right: 5
+      top: -54,
+      right: -26
     }
   },
   {
@@ -282,8 +283,8 @@ const WheelOptionsFarol = [
     styles: {
       ...styles.wheelButtonSecondary,
       position: "absolute",
-      top: -40,
-      right: styles.wheelButtonSecondary.width + 5
+      top: -32,
+      right: -66
     }
   } 
 ]
@@ -297,7 +298,7 @@ const WheelOptionsArrow = [
       ...styles.wheelButtonSecondary,
       position: "absolute",
       top: -(styles.wheelButtonSecondary.width + 40),
-      right: -4
+      right: 4
     }
   },
   {
@@ -308,7 +309,7 @@ const WheelOptionsArrow = [
       ...styles.wheelButtonSecondary,
       position: "absolute",
       top: -(styles.wheelButtonSecondary.width + 8),
-      right: 30
+      right: -30
     }
   },
   {
@@ -319,7 +320,7 @@ const WheelOptionsArrow = [
       ...styles.wheelButtonSecondary,
       position: "absolute",
       top: -8,
-      right: styles.wheelButtonSecondary.width + 10
+      right: -(styles.wheelButtonSecondary.width + 10)
     }
   },
   {
@@ -333,8 +334,7 @@ const WheelOptionsArrow = [
       ...styles.wheelButtonSecondary,
       position: "absolute",
       top: 36,
-      right: styles.wheelButtonSecondary.width + 26
+      right: -(styles.wheelButtonSecondary.width + 26)
     }
   } 
-  
 ]

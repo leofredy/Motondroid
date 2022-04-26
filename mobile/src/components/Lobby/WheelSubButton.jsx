@@ -8,8 +8,10 @@ export default function WheelSubButton({
   childrenCustom, 
   focusOption, 
   focusButton,
-  changeOption, 
-  setDefaultChildren
+  changeOption,
+  typeOption, 
+  setDefaultChildren,
+  index
 }) {
   const opacityAnimat = useRef(new Animated.Value(0)).current;
   const positionAnimat = useRef(new Animated.ValueXY({x: 0, y: 0})).current;
@@ -23,44 +25,40 @@ export default function WheelSubButton({
   }, [focusButton]);
 
   function fadeIn() {
-    console.log(childrenCustom ? "true" : "false")
-    childrenCustom.forEach(custom => {
-      console.log(custom.styles.top)
-      Animated.parallel([
-        Animated.timing(opacityAnimat, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true
-        }),
-        Animated.timing(positionAnimat.x, {
-          toValue: custom.styles.right * 2,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(positionAnimat.y, {
-          toValue: custom.styles.top * 2,
-          duration: 1000,
-          useNativeDriver: true,
-        })
-      ]).start();
-    });
+    Animated.parallel([
+      Animated.timing(opacityAnimat, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true
+      }),
+      Animated.timing(positionAnimat.x, {
+        toValue: childrenCustom.styles.right,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(positionAnimat.y, {
+        toValue: childrenCustom.styles.top,
+        duration: 300,
+        useNativeDriver: true,
+      })
+    ]).start();
   }
 
   function fadeOut() {
     Animated.parallel([
       Animated.timing(opacityAnimat, {
         toValue: 0,
-        duration: 1000,
+        duration: 300,
         useNativeDriver: true
       }),
       Animated.timing(positionAnimat.x, {
         toValue: 0,
-        duration: 1000,
+        duration: 300,
         useNativeDriver: true,
       }),
       Animated.timing(positionAnimat.y, {
         toValue: 0,
-        duration: 1000,
+        duration: 300,
         useNativeDriver: true,
       })
     ]).start();
@@ -77,8 +75,6 @@ export default function WheelSubButton({
         transform: [
           {translateX: (positionAnimat.x)},
           {translateY: (positionAnimat.y)},
-          // {translateX: 100},
-          // {translateY: 100}
         ],
       }}
       onTouchStart={() => {

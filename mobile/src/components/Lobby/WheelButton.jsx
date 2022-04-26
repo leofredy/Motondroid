@@ -21,11 +21,9 @@ export default function WheelButton({
   useEffect(() => {
     clearTimeout(timer);
     if (!focusButton) {
-      // fadeOut();
       setTimer(setTimeout(() => {
         setShowWheelButtons(false);
-        console.log("AAAAA: ", showWheelButtons, typeOption)
-      }, 3000));
+      }, 300));
     }
   }, [focusButton]);
 
@@ -59,7 +57,6 @@ export default function WheelButton({
       {
         subChildren && showWheelButtons
         && childrenCustom.map((custom, index) => {
-          
           return (
             <WheelSubButton
               childrenCustom={custom}
@@ -67,9 +64,11 @@ export default function WheelButton({
               changeOption={changeOption}
               focusButton={focusButton}
               setDefaultChildren={setDefaultChildren}
+              typeOption={typeOption}
+              index={index}
               key={index}
             >
-              {childrenCustom.children}
+              {custom.children}
             </WheelSubButton>
           );
         })
