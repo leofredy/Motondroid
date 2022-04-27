@@ -7,14 +7,84 @@
 #include <string>
 #include <WebSocketsServer_Generic.h>
 
+#define inFarolBaixo         D0
+#define inFarolAlto            D1
+#define inSetaDireita        D2
+#define inSetaEsquerda   D5
+#define inSetaDesligada   D6
+#define ledFarolBaixo       D3
+#define ledFarolAlto          D4
+#define ledSetaDireita      D7
+#define ledSetaEsquerda D8
+
 using namespace std;
 
-
+//WifiAP
 const char* ssid = "Motondroid";
 const char* password = "12345678";
-
 WiFiServer wifiServer(3333);
+
+//Server
 ESP8266WebServer server(80);
+void restServerRouting();
+
+//SocketEvent
+WebSocketsServer webSocket = WebSocketsServer(81);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+
+void handleBtn();
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600); 
+
+
+  //Configs wifi
+  WiFi.mode(WIFI_AP);// Working mode only as Acess Point 
+  WiFi.softAP(ssid, password);
+  wifiServer.begin();
+  Serial.println("Wifi Server started"); 
+  Serial.println(WiFi.softAPIP());
+  Serial.println(WiFi.localIP());  //Print the local IP to access the server
+  Serial.println("Wifi started");
+
+  //Config server https;
+  restServerRouting();
+  server.begin();
+  Serial.println("HTTP server started");
+
+ //Config socket;
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+
+  //Prototipo da moto
+  digitalWrite(inFarolBaixo, LOW);
+  digitalWrite(inFarolAlto, LOW);
+  digitalWrite(inSetaDireita, LOW);
+  digitalWrite(inSetaEsquerda, LOW);
+  digitalWrite(inSetaDesligada, LOW);
+  digitalWrite(ledFarolBaixo, LOW);
+  digitalWrite(ledFarolAlto, LOW);
+  digitalWrite(ledSetaDireita, LOW);
+  digitalWrite(ledSetaEsquerda, LOW);
+  
+  pinMode(inFarolBaixo, INPUT);
+  pinMode(inFarolAlto, INPUT);
+  pinMode(inSetaDireita, INPUT);
+  pinMode(inSetaEsquerda, INPUT);
+  pinMode(inSetaDesligada, INPUT);
+  
+  pinMode(ledFarolBaixo, OUTPUT);
+  pinMode(ledFarolAlto, OUTPUT);
+  pinMode(ledSetaDireita, OUTPUT);
+  pinMode(ledSetaEsquerda, OUTPUT);
+}
+
+void loop() {
+  server.handleClient();
+  webSocket.loop();
+  controlesMoto();
+}
 
 void restServerRouting() {
     server.on("/", HTTP_GET, []() {
@@ -44,12 +114,9 @@ void restServerRouting() {
     });
 }
 
-//SocketEvent
-
-WebSocketsServer webSocket = WebSocketsServer(81);
-
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   Serial.println("* SOCKET EVENT *");
+  Serial.println(type);
   (void) length;
   
   switch (type)
@@ -88,40 +155,35 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
   }
 }
 
-void handleBtn() {
-  bool statusBtn = digitalRead(D8);
+void controlesMoto() {
+  bool statusFarolBaixo       = digitalRead(inFarolBaixo);
+  bool statusFarolAlto          = digitalRead(inFarolAlto);
+  bool statusSetaDireita      = digitalRead(inSetaDireita);
+  bool statusSetaEsquerda = digitalRead(inSetaEsquerda);
+  bool statusSetaDesligada = digitalRead(inSetaDesligada);
 
-  if (statusBtn) {
-    webSocket.sendTXT(0, "ligado!!");
+  if (statusFarolBaixo) {
+    digitalWrite(ledFarolBaixo, HIGH);
+    digitalWrite(ledFarolAlto, LOW);
   }
-}
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600); 
-  
-  WiFi.mode(WIFI_AP);// Working mode only as Acess Point 
-  WiFi.softAP(ssid, password);
-  wifiServer.begin();
+  if (statusFarolAlto) {
+    digitalWrite(ledFarolBaixo, LOW);
+    digitalWrite(ledFarolAlto, HIGH);
+  }
 
-  Serial.println("Server started"); 
-  Serial.println(WiFi.softAPIP());
-  Serial.println(WiFi.localIP());  //Print the local IP to access the server
-  Serial.println("Connection");
-  restServerRouting();
-  server.begin();
-  Serial.println("HTTP server started");
+  if (statusSetaDireita) {
+    digitalWrite(ledSetaDireita, HIGH);
+    digitalWrite(ledSetaEsquerda, LOW);
+  }
 
-  webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
+  if (statusSetaEsquerda) {
+    digitalWrite(ledSetaDireita, LOW);
+    digitalWrite(ledSetaEsquerda, HIGH);
+  }
 
-  pinMode(D8, INPUT);
-  pinMode(D0, OUTPUT);
-  digitalWrite(D0, LOW);
-}
-
-void loop() {
-  server.handleClient();
-  webSocket.loop();
-  handleBtn();
+  if (statusSetaDesligada) {
+    digitalWrite(ledSetaDireita, LOW);
+    digitalWrite(ledSetaEsquerda, LOW);
+  }
 }
