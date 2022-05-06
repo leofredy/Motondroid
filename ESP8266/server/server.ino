@@ -32,7 +32,10 @@ void restServerRouting();
 WebSocketsServer webSocket = WebSocketsServer(81);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
+String converter(uint8_t *str);
 void handleBtn();
+
+uint8_t idUserSocket = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -103,22 +106,24 @@ void restServerRouting() {
       deserializeJson(doc, server.arg("plain"));
 
       const String username = doc["username"];
-
-      Serial.println(username);
-      Serial.println(username == "leofreedy");
-      if (username == "leofreedy") {
-        digitalWrite(D0, HIGH);
+      const String password = doc["password"];
+      
+//      Serial.println(username);
+//      Serial.println(username == "leofreedy");
+      if (username == "leofreedy" && password == "123456789") {
+        server.send(200, "text/json", "{\"status\": \"true\"}");
+      } else {
+        server.send(401, "text/json", "{\"status\": \"false\"}");
       }
       Serial.println(username);
-      server.send(200, "text/json", username);
+      
     });
 }
-
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-  Serial.println("* SOCKET EVENT *");
-  Serial.println(type);
+  idUserSocket = num;
+//  Serial.println(type);
   (void) length;
-  
+     
   switch (type)
   {
     case WStype_DISCONNECTED:
@@ -135,9 +140,49 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       }
       break;
       
-    case WStype_TEXT:
-      Serial.printf("[%u] get Text: %s\n", num, payload);
-
+    case WStype_TEXT: {
+      String strFarolBaixo = "farolBaixo";
+      String strFarolAlto = "farolAlto";
+      String strSetaDireita = "setaDireita";
+      String strSetaEsquerda = "setaEsquerda";
+      String strSetaDesliga = "setaDesliga";
+      String strSetaAlerta = "setaAlerta";
+      
+      uint8_t * uintFarolBaixo = reinterpret_cast<uint8_t *> (&strFarolBaixo[0]);
+      uint8_t * uintFarolAlto = reinterpret_cast<uint8_t *> (&strFarolAlto[0]);
+      uint8_t * uintSetaDireita = reinterpret_cast<uint8_t *> (&strSetaDireita[0]);
+      uint8_t * uintSetaEsquerda = reinterpret_cast<uint8_t *> (&strSetaEsquerda[0]);
+      uint8_t * uintSetaAlerta =   reinterpret_cast<uint8_t *> (&strSetaAlerta[0]);
+      uint8_t * uintSetaDesliga = reinterpret_cast<uint8_t *> (&strSetaDesliga[0]);
+      
+      if (strcmp(((char*)uintFarolBaixo), ((char *)payload)) == 0) {
+        digitalWrite(ledFarolBaixo, HIGH);
+        digitalWrite(ledFarolAlto, LOW);
+//        webSocket.sendTXT(num, "farolBaixo");
+      } else if (strcmp(((char*)uintFarolAlto), ((char *)payload)) == 0) {
+        digitalWrite(ledFarolBaixo, LOW);
+        digitalWrite(ledFarolAlto, HIGH);
+//        webSocket.sendTXT(num, "farolAlto");
+      } 
+      if (strcmp(((char*)uintSetaDireita), ((char *)payload)) == 0) {
+        digitalWrite(ledSetaDireita, HIGH);
+        digitalWrite(ledSetaEsquerda, LOW);
+//        webSocket.sendTXT(num, "setaDireita");
+      } else if (strcmp(((char*)uintSetaEsquerda), ((char *)payload)) == 0) {
+        digitalWrite(ledSetaDireita, LOW);
+        digitalWrite(ledSetaEsquerda, HIGH);
+//        webSocket.sendTXT(num, "setaEsquerda");
+      } else if (strcmp(((char*)uintSetaAlerta), ((char *)payload)) == 0) {
+        digitalWrite(ledSetaDireita, HIGH);
+        digitalWrite(ledSetaEsquerda, HIGH);
+      } else if (strcmp(((char*)uintSetaDesliga), ((char *)payload)) == 0) {
+        digitalWrite(ledSetaDireita, LOW);
+        digitalWrite(ledSetaEsquerda, LOW);
+//        webSocket.sendTXT(num, "setaDesligada");
+      }
+//      Serial.printf("%s", te);
+//      Serial.printf("[%u] get Text: %s\n", num, payload);
+    }
       // send message to client
       // webSocket.sendTXT(num, "message here");
 
@@ -157,19 +202,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
 void controlesMoto() {
   bool statusFarolBaixo       = digitalRead(inFarolBaixo);
-  bool statusFarolAlto          = digitalRead(inFarolAlto);
+  bool statusFarolAlto        = digitalRead(inFarolAlto);
   bool statusSetaDireita      = digitalRead(inSetaDireita);
-  bool statusSetaEsquerda = digitalRead(inSetaEsquerda);
-  bool statusSetaDesligada = digitalRead(inSetaDesligada);
-
-  if (statusFarolBaixo) {
+  bool statusSetaEsquerda     = digitalRead(inSetaEsquerda);
+  bool statusSetaDesligada    = digitalRead(inSetaDesligada);
+  
+  if (statusFarolBaixo && !digitalRead(ledFarolBaixo)) {
     digitalWrite(ledFarolBaixo, HIGH);
     digitalWrite(ledFarolAlto, LOW);
+    Serial.println("FAROL BAIXO");
+    webSocket.sendTXT(idUserSocket, "farolBaixo");
   }
 
-  if (statusFarolAlto) {
+  if (statusFarolAlto && !digitalRead(ledFarolAlto)) {
     digitalWrite(ledFarolBaixo, LOW);
     digitalWrite(ledFarolAlto, HIGH);
+    Serial.println("FAROL ALTO");
+    webSocket.sendTXT(idUserSocket, "farolAlto");
   }
 
   if (statusSetaDireita) {
@@ -186,4 +235,7 @@ void controlesMoto() {
     digitalWrite(ledSetaDireita, LOW);
     digitalWrite(ledSetaEsquerda, LOW);
   }
+}
+String converter(uint8_t *str){
+    return String((char *)str);
 }
