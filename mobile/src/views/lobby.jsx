@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StatusBar, StyleSheet, View, Text, Image, Animated } from "react-native"
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { AppState, StatusBar, StyleSheet, View, Text, Image, Animated } from "react-native"
 import * as ScreenOrientation from "expo-screen-orientation";
 import Svg, { Path } from "react-native-svg";
 
@@ -10,8 +10,29 @@ const PathAnimated = Animated.createAnimatedComponent(Path);
 
 export default function Lobby() {
   const [time, setTime] = useState(0);
+  const [codArrow, setCodArrow] = useState(-1);
   const piscaLigado = useRef(0);
-  const AnimatedOpacity = useRef(new Animated.Value(0)).current;
+  const animatArrowFirst = useRef(new Animated.Value(0)).current;
+  const animatArrowSeconday = useRef(new Animated.Value(0)).current;
+  const [loading, setLoading] = useState(1);
+  const [socketAPI, setSocketAPI] = useState(null);
+
+  useEffect(() => {
+    handleStartSocket()
+    .then((socket) => {
+      setSocketAPI(socket);
+      setLoading(0);
+    })
+    .catch(messageErro => console.log("erro man"));
+  }, []);
+  
+  useEffect(() => {
+    if (socketAPI) {
+      AppState.addEventListener("change", handleAppStateChange);
+    }
+
+  }, [socketAPI]);
+
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
 
@@ -19,7 +40,6 @@ export default function Lobby() {
       setTime(prevState => prevState + 1);
     }, 1000);
 
-    
     const intervalPisca = piscaAnimate();
 
     return () => {
@@ -28,6 +48,14 @@ export default function Lobby() {
     }
   }, []);
 
+  const isArrowLeft = useMemo(() => {
+    return codArrow === 2 || codArrow === 3;
+  }, [codArrow]);
+
+  const isArrowRight = useMemo(() => {
+    return codArrow === 1 || codArrow === 3;
+  }, [codArrow]);
+
   function getTimeHours() {
     const hours = `${parseInt(time / 3600)}`.padStart(2, "0");
     const minutes = `${parseInt((time % 3600) / 60)}`.padStart(2, "0");
@@ -35,97 +63,113 @@ export default function Lobby() {
     return `${hours}:${minutes}:${seconds}`; 
   }
 
-  function handleArrowHeader(value) {
-    switch (value) {
-      case 1: 
-        // seta direita
-        break;
-      case 2: 
-        // seta esquerda
-        break;
-      case 3:
-        // pisca alerta 
-        break;
-      case 4:
-      case -1:
-        // desliga seta
-        break;
+  function handleStartSocket() {   
+    return new Promise(async (resolve, reject) => {
+      const socket = await new WebSocket("ws://192.168.4.1:81/");
+      
+      socket.onopen = () => {
+        resolve(socket);
+      }
+      socket.onerror = function (error) {
+        reject("Erro de connexão");
+      };
+
+    });
+  }
+
+  function handleAppStateChange(event) {
+    if (socketAPI.readyState === 1 && event === "background") {
+      socketAPI.close();
+      setLoading(1);
+    } else if (socketAPI.readyState !== 1 && event === "active") {
+      handleStartSocket()
+        .then((socket) => {
+          setSocketAPI(socket);
+          setLoading(0);
+        })
+        .catch(messageErro => console.log("erro man"));
     }
   }
+
+
   function piscaAnimate() {
     return setInterval(() => {
-      // console.log(piscaLigado.current);
-      Animated.timing(AnimatedOpacity, {
-        toValue: piscaLigado.current ? 1 : 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-      
-
+      Animated.sequence([
+        Animated.timing(animatArrowFirst, {
+          toValue: piscaLigado.current ? 1 : 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatArrowSeconday, {
+          toValue: piscaLigado.current ? 1 : 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
       piscaLigado.current = !piscaLigado.current;
     }, 400);
   }
 
   return(
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Svg 
-          style={styles.header_svgLeft}
-          width="21" 
-          height="18" 
-          viewBox="0 0 21 18" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <Path 
-            d="M6.625 17.75H12.25L6 9L12.25 0.25H6.625L0.375 9L6.625 17.75Z" 
-            fill="#727077"
-          />
-          <Path 
-            d="M15.375 17.75H21L14.75 9L21 0.25H15.375L9.125 9L15.375 17.75Z" 
-            fill="#727077"
-          />
-        </Svg>
-        <View style={styles.cronometro}>
-          <Image source={RelegioSVG}/>
-          <Text style={styles.cronometroText}>{getTimeHours()}</Text>
-        </View>
-        <Svg 
-          style={styles.header_svgRight}
-          width="21" 
-          height="18" 
-          viewBox="0 0 21 18" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <PathAnimated 
-            d="M6.625 17.75H12.25L6 9L12.25 0.25H6.625L0.375 9L6.625 17.75Z" 
-            fill="#727077"
-            fillOpacity={AnimatedOpacity}
-          />
-          <Path 
-            d="M15.375 17.75H21L14.75 9L21 0.25H15.375L9.125 9L15.375 17.75Z" 
-            fill="#727077"
-          />
-        </Svg>
-      </View>
-
-      {/* <ViewAnimated
-        style={{
-          opacity: AnimatedOpacity
-        }}  
-      >
-
-        <Text style={{color: "white"}}>
-          ooi
+    loading ? 
+      (
+        <Text>
+          Loading socket...
         </Text>
-          </ViewAnimated> */}
-
-      <WheelMenu 
-        style={styles.controls}
-        changeArrow={handleArrowHeader}  
-      />
-    </View>
+      )
+      : (
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Svg 
+              style={styles.header_svgLeft}
+              width="21" 
+              height="18" 
+              viewBox="0 0 21 18" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <PathAnimated 
+                d="M6.625 17.75H12.25L6 9L12.25 0.25H6.625L0.375 9L6.625 17.75Z" 
+                fill={isArrowLeft ? "#FFEE58" : "#727077"}
+                fillOpacity={isArrowLeft ? animatArrowSeconday : 1}
+              />
+              <PathAnimated 
+                d="M15.375 17.75H21L14.75 9L21 0.25H15.375L9.125 9L15.375 17.75Z" 
+                fill={isArrowLeft ? "#FFEE58" : "#727077"}
+                fillOpacity={isArrowLeft ? animatArrowFirst : 1}
+              />
+            </Svg>
+            <View style={styles.cronometro}>
+              <Image source={RelegioSVG}/>
+              <Text style={styles.cronometroText}>{getTimeHours()}</Text>
+            </View>
+            <Svg 
+              style={styles.header_svgRight}
+              width="21" 
+              height="18" 
+              viewBox="0 0 21 18" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <PathAnimated 
+                d="M6.625 17.75H12.25L6 9L12.25 0.25H6.625L0.375 9L6.625 17.75Z" 
+                fill={isArrowRight ? "#FFEE58" : "#727077"}
+                fillOpacity={isArrowRight ? animatArrowSeconday: 1}
+              />
+              <PathAnimated 
+                d="M15.375 17.75H21L14.75 9L21 0.25H15.375L9.125 9L15.375 17.75Z" 
+                fill={isArrowRight ? "#FFEE58" : "#727077"}
+                fillOpacity={isArrowRight ? animatArrowFirst : 1}
+              />
+            </Svg>
+          </View>
+          <WheelMenu 
+            socket={socketAPI}
+            changeArrow={setCodArrow}  
+            style={styles.controls}
+          />
+        </View>
+      )
   );
 }
 

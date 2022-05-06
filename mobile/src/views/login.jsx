@@ -50,7 +50,7 @@ export default function Login({ navigation }) {
   }
 
   function handleLogin() {
-    if (!stateWifi.details.ssid) {
+    if (!stateWifi.details.ssid === "Motondroid") {
       fetch(
         "http://192.168.4.1/login", 
         {
@@ -60,17 +60,15 @@ export default function Login({ navigation }) {
             password: password
           })
         }
-      ).then(response => response.json()
-      ).then(data => {
-        if (data.status === "logado com sucesso!") {
+      )
+      .then((r) => r.json())
+      .then(d => {
+        console.log(d.status);
+        if (d.status === "true") {
           navigation.navigate("Lobby");
-        } else {
-          setPassword("");
-          alert("Usuário ou senha incorreto!");
         }
-      }).catch(() => {
-        alert("sem request")
-      });
+      })
+      .catch(e => console.log(`Erro: ${e}`));
     } else {
       alert("indo para proxima página")
       navigation.navigate("Lobby");

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { View, TouchableOpacity, Animated, Button } from "react-native";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { View, TouchableOpacity, Animated, Button, Text } from "react-native";
 
 import WheelSubButton from "./WheelSubButton";
 
@@ -11,12 +11,13 @@ export default function WheelButton({
   subChildren,
   childrenCustom,
   focusOption,
-  focusButton
+  focusButton,
+  defaultChildren,
+  setDefaultChildren
 }) { 
   const [timer, setTimer] = useState(0);
   const [showWheelButtons, setShowWheelButtons] = useState(false);
-  const [defaultChildren, setDefaultChildren] = useState(children);
-  
+  // const [defaultChildren, setDefaultChildren] = useState(children);
 
   useEffect(() => {
     clearTimeout(timer);
