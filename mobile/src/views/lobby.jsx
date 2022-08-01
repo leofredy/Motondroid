@@ -8,7 +8,7 @@ import RelegioSVG from "../assets/img/relogio.png";
 
 const PathAnimated = Animated.createAnimatedComponent(Path);
 
-export default function Lobby() {
+export default function Lobby({ navigation }) {
   const [time, setTime] = useState(0);
   const [codArrow, setCodArrow] = useState(-1);
   const piscaLigado = useRef(0);
@@ -40,13 +40,14 @@ export default function Lobby() {
       setTime(prevState => prevState + 1);
     }, 1000);
 
-    const intervalPisca = piscaAnimate();
-
     return () => {
       clearTimeout(timer);
-      clearInterval(intervalPisca);
     }
   }, []);
+
+  useEffect(() => {
+    piscaAnimate();
+  }, [codArrow]);
 
   const isArrowLeft = useMemo(() => {
     return codArrow === 2 || codArrow === 3;
@@ -79,8 +80,11 @@ export default function Lobby() {
 
   function handleAppStateChange(event) {
     if (socketAPI.readyState === 1 && event === "background") {
+      socketAPI.send("offPainel");
       socketAPI.close();
       setLoading(1);
+      navigation.navigate("Login");
+
     } else if (socketAPI.readyState !== 1 && event === "active") {
       handleStartSocket()
         .then((socket) => {
@@ -93,21 +97,35 @@ export default function Lobby() {
 
 
   function piscaAnimate() {
-    return setInterval(() => {
-      Animated.sequence([
-        Animated.timing(animatArrowFirst, {
-          toValue: piscaLigado.current ? 1 : 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatArrowSeconday, {
-          toValue: piscaLigado.current ? 1 : 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-      piscaLigado.current = !piscaLigado.current;
-    }, 400);
+    animatArrowFirst.setValue(0);
+    animatArrowSeconday.setValue(0);
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(animatArrowFirst, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animatArrowSeconday, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.parallel([
+            Animated.timing(animatArrowFirst, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.timing(animatArrowSeconday, {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ])
+        ], {}),
+        {iterations: -1}
+      ).start();
   }
 
   return(
@@ -131,12 +149,12 @@ export default function Lobby() {
               <PathAnimated 
                 d="M6.625 17.75H12.25L6 9L12.25 0.25H6.625L0.375 9L6.625 17.75Z" 
                 fill={isArrowLeft ? "#FFEE58" : "#727077"}
-                fillOpacity={isArrowLeft ? animatArrowSeconday : 1}
+                opacity={isArrowLeft ? animatArrowSeconday : 1}
               />
               <PathAnimated 
                 d="M15.375 17.75H21L14.75 9L21 0.25H15.375L9.125 9L15.375 17.75Z" 
                 fill={isArrowLeft ? "#FFEE58" : "#727077"}
-                fillOpacity={isArrowLeft ? animatArrowFirst : 1}
+                opacity={isArrowLeft ? animatArrowFirst : 1}
               />
             </Svg>
             <View style={styles.cronometro}>

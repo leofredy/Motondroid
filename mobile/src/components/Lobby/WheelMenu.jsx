@@ -6,6 +6,7 @@ import WheelButton from "./WheelButton";
 
 export default function WheelMenu({ style, changeArrow, socket }) {
   const [ignition, setIgnition] = useState(false);
+  const [cutCurrent, setCutCurrent] = useState(false);
   const [headLight, setHeadLight] = useState(-1);
   const [hooter, setHooter] = useState(false);
   const [arrow, setArrow] = useState(-1);
@@ -14,7 +15,7 @@ export default function WheelMenu({ style, changeArrow, socket }) {
   const [farolDefault, setFarolDefault]   = useState(WheelFarol.options[0].children);
   const [setaDefault, setSetaDefault]     = useState(WheelArrow.options[3].children);
   const hooterDefault = useRef(WheelHooter).current;
-  const cutCurrent = useRef(WheelCutCurrent).current;
+  const cutCurrentDefault = useRef(WheelCutCurrent).current;
   const ignitionDefault = useRef(WheelIgnition).current;
 
   useEffect(() => {
@@ -22,16 +23,30 @@ export default function WheelMenu({ style, changeArrow, socket }) {
   });
 
   useEffect(() => {
-    if (ignition || hooter) {
-      if (ignition) {
-        console.log("LIGA MOTO");
-      } else {
-        console.log("LIGA Buzina");
-      }
+    if (ignition) {
+      socket.send("onPartidaMoto");
+      console.log("Liga motor pressionado");
     } else {
-      console.log("Desliga moto e buzina");
+      socket.send("offPartidaMoto");
+      console.log("Liga motor despressionado");
     }
-  }, [ignition, hooter]);
+  }, [ ignition ]);
+
+  useEffect(() => {
+    if (cutCurrent) {
+      socket.send("onBtnCotarCorrente");
+    } else {
+      socket.send("offBtnCotarCorrente");
+    }
+  }, [ cutCurrent ]);
+
+  useEffect(() => {
+    if (hooter) {
+      socket.send("onBtnBuzina");
+    } else {
+      socket.send("offBtnBuzina");
+    }
+  }, [ hooter ]);
 
   useEffect(() => {
     switch (headLight) {
@@ -75,8 +90,9 @@ export default function WheelMenu({ style, changeArrow, socket }) {
         break;
       case "hooter":
         setHooter(!hooter);
+        break;
       case "cutCurrent":
-        setIgnition(false);
+        setCutCurrent(!cutCurrent);
         break;
       case "arrows":
         setArrow(value); 
@@ -164,7 +180,7 @@ export default function WheelMenu({ style, changeArrow, socket }) {
         }}
       />
       <WheelButton
-        defaultChildren={cutCurrent}
+        defaultChildren={cutCurrentDefault}
         changeOption={changeOptions}
         focusOption={handleFocusOption}
         typeOption={"cutCurrent"}

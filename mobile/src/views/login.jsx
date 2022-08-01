@@ -50,7 +50,7 @@ export default function Login({ navigation }) {
   }
 
   function handleLogin() {
-    if (!stateWifi.details.ssid === "Motondroid") {
+    if (stateWifi.details.ssid === "Motondroid") {
       fetch(
         "http://192.168.4.1/login", 
         {
@@ -69,9 +69,6 @@ export default function Login({ navigation }) {
         }
       })
       .catch(e => console.log(`Erro: ${e}`));
-    } else {
-      alert("indo para proxima página")
-      navigation.navigate("Lobby");
     }
   }
 

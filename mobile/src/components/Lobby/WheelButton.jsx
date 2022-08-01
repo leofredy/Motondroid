@@ -17,7 +17,6 @@ export default function WheelButton({
 }) { 
   const [timer, setTimer] = useState(0);
   const [showWheelButtons, setShowWheelButtons] = useState(false);
-  // const [defaultChildren, setDefaultChildren] = useState(children);
 
   useEffect(() => {
     clearTimeout(timer);
@@ -48,7 +47,7 @@ export default function WheelButton({
           }
         }}   
         onPressOut={() => {
-          if (typeOption === "ignition" || typeOption === "hooter") {
+          if (typeOption === "ignition" || typeOption === "hooter" || typeOption === "cutCurrent") {
             changeOption(typeOption);
           }
         }}     
